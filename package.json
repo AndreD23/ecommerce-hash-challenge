@@ -1,8 +1,8 @@
 {
-  "name": "nest-app",
+  "name": "ecommerce-app",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Projeto back end Hash",
+  "author": "André Dorneles",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
