@@ -6,7 +6,7 @@ import { CheckoutCartDto } from './dto/checkout-cart.dto';
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
-  @Post()
+  @Post('checkout')
   checkout(@Body() checkoutCartDto: CheckoutCartDto) {
     return this.cartService.checkout(checkoutCartDto);
   }
