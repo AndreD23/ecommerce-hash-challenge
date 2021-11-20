@@ -1,22 +1,20 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, OnModuleInit } from '@nestjs/common';
 import { CheckoutCartDto } from './dto/checkout-cart.dto';
 import { Observable } from 'rxjs';
 import { Discount } from '../interfaces/discount.interface';
 import { ClientGrpc } from '@nestjs/microservices';
 
 interface DiscountService {
-  getDiscount(productId: number): Observable<Discount>;
+  getDiscount(productId: number): Observable<any>;
 }
 
-@Injectable()
 export class CartService implements OnModuleInit {
   private discountService: DiscountService;
 
   constructor(@Inject('DISCOUNT_PACKAGE') private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.discountService =
-      this.client.getService<DiscountService>('DiscountService');
+    this.discountService = this.client.getService<DiscountService>('Discount');
   }
 
   checkout(checkoutCartDto: CheckoutCartDto) {
