@@ -3,7 +3,6 @@ import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
 import { ClientsModule } from '@nestjs/microservices';
 import { grpcCartModuleClientOptions } from '../grpc-client.option';
-import { DiscountGrpcClientController } from './discount-grpc-client/discount-grpc-client.controller';
 
 @Module({
   imports: [
@@ -14,7 +13,7 @@ import { DiscountGrpcClientController } from './discount-grpc-client/discount-gr
       },
     ]),
   ],
-  controllers: [CartController, DiscountGrpcClientController],
+  controllers: [CartController],
   providers: [CartService],
 })
 export class CartModule {}
