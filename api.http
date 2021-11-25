@@ -5,5 +5,14 @@ POST http://localhost:3000/cart/checkout
 Content-Type: application/json
 
 {
-  "teste": "1"
+  "products": [
+    {
+      "id": 1,
+      "quantity": 1
+    },
+    {
+      "id": 2,
+      "quantity": 3
+    }
+  ]
 }

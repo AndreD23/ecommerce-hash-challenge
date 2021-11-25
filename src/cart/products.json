@@ -1,10 +1,11 @@
-[{
-  "id": 1,
-  "title": "Ergonomic Wooden Pants",
-  "description": "Deleniti beatae porro.",
-  "amount": 15157,
-  "is_gift": false
-},
+[
+  {
+    "id": 1,
+    "title": "Ergonomic Wooden Pants",
+    "description": "Deleniti beatae porro.",
+    "amount": 15157,
+    "is_gift": false
+  },
   {
     "id": 2,
     "title": "Ergonomic Cotton Keyboard",
