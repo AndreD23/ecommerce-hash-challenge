@@ -1,4 +1,9 @@
-import { Inject, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CheckoutCartDto } from './dto/checkout-cart.dto';
 import { Observable } from 'rxjs';
 import { Discount } from '../interfaces/discount.interface';
@@ -6,6 +11,7 @@ import { ClientGrpc } from '@nestjs/microservices';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Product } from './entities/product.entity';
+import * as MOCKED_PRODUCTS from './products.json';
 
 interface DiscountService {
   getDiscount(productId: number): Observable<any>;
@@ -27,7 +33,7 @@ export class CartService implements OnModuleInit {
   checkout(checkoutCartDto: CheckoutCartDto) {
     // Extrai as informações do BD
     const productsCheckout = checkoutCartDto.products.map((productCart) => {
-      const product = this.getProductsDetails(productCart);
+      const product = this.getProductsDetails(productCart.id);
 
       // Verifica se o produto existe no BD
       if (!product) {
@@ -36,16 +42,23 @@ export class CartService implements OnModuleInit {
         );
       }
 
+      // Verifica se há estoque suficiente
+      if (!CartService.productHasStock(product.amount, productCart.quantity)) {
+        throw new HttpException(
+          `Não há estoque suficiente para o produto ${productCart.id}`,
+          400,
+        );
+      } else {
+        console.log('Olha meu amigo, aparentemente tem estoque aqui hein');
+      }
+
+      // Verificar valor com desconto
+      // const productDiscount = this.getGrpcDiscount(product.id);
+      // console.log(`### Este é o desconto retornado do produto ${product.id}:`);
+      // console.log(productDiscount);
+
       return product;
     });
-
-    // Verifica se há estoque suficiente
-
-    // Verificar se o serviço de desconto está disponível
-
-    // Verificar valor com desconto
-
-    // this.getGrpcDiscount();
 
     // Verificar se é black friday
     // Se for, adicionar produto brinde no carrinho
@@ -53,12 +66,32 @@ export class CartService implements OnModuleInit {
     // Só pode haver 1 produto brinde no carrinho
   }
 
-  private getProductsDetails(data) {
+  /**
+   * Busca por um produto no banco de dados
+   * @param productId identificador do produto a ser buscado
+   * @return Product
+   * @private
+   */
+  private getProductsDetails(productId): Product {
     const productsBD = this.Products;
-    return productsBD.find((product) => product.id === data.id);
+    return productsBD.find((product) => product.id === productId);
   }
 
-  // private getGrpcDiscount(productId: number): Observable<Discount> {
-  //   return this.discountService.getDiscount(productId);
-  // }
+  /**
+   * Método auxiliar que verifica se o produto tem estoque
+   * e se o estoque disponível é mais do que o solicitado
+   * @param productStock Quantidade atual de produto no BD
+   * @param requiredAmount Quantidade solicitada no carrinho
+   * @returns boolean TRUE para caso tenha estoque suficiente, FALSE caso contrário
+   * @private
+   */
+  private static productHasStock(productStock, requiredAmount): boolean {
+    console.log(productStock);
+    console.log(requiredAmount);
+    return !(productStock <= 0 || productStock < requiredAmount);
+  }
+
+  private getGrpcDiscount(productId: number): Observable<Discount> {
+    return this.discountService.getDiscount(productId);
+  }
 }
