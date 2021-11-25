@@ -48,8 +48,6 @@ export class CartService implements OnModuleInit {
           `Não há estoque suficiente para o produto ${productCart.id}`,
           400,
         );
-      } else {
-        console.log('Olha meu amigo, aparentemente tem estoque aqui hein');
       }
 
       // Verificar valor com desconto
@@ -86,8 +84,6 @@ export class CartService implements OnModuleInit {
    * @private
    */
   private static productHasStock(productStock, requiredAmount): boolean {
-    console.log(productStock);
-    console.log(requiredAmount);
     return !(productStock <= 0 || productStock < requiredAmount);
   }
 
