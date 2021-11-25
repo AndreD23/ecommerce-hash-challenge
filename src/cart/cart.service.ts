@@ -1,4 +1,4 @@
-import { Inject, OnModuleInit } from '@nestjs/common';
+import { Inject, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { CheckoutCartDto } from './dto/checkout-cart.dto';
 import { Observable } from 'rxjs';
 import { Discount } from '../interfaces/discount.interface';
@@ -27,7 +27,16 @@ export class CartService implements OnModuleInit {
   checkout(checkoutCartDto: CheckoutCartDto) {
     // Extrai as informações do BD
     const productsCheckout = checkoutCartDto.products.map((productCart) => {
-      return this.getProductsDetails(productCart);
+      const product = this.getProductsDetails(productCart);
+
+      // Verifica se o produto existe no BD
+      if (!product) {
+        throw new NotFoundException(
+          `O produto com id ${productCart.id} não foi encontrado!`,
+        );
+      }
+
+      return product;
     });
 
     // Verifica se há estoque suficiente
