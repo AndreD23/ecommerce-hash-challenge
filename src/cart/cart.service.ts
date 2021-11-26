@@ -8,10 +8,9 @@ import { CheckoutCartDto } from './dto/checkout-cart.dto';
 import { Observable } from 'rxjs';
 import { Discount } from '../interfaces/discount.interface';
 import { ClientGrpc, RpcException } from '@nestjs/microservices';
-import * as fs from 'fs';
-import * as path from 'path';
 import { Product } from './entities/product.entity';
 import { ProductCart } from './entities/cart.entity';
+import * as Products from './products.json';
 
 interface DiscountService {
   getDiscount(productId: number): Observable<any>;
@@ -25,11 +24,6 @@ export class CartService implements OnModuleInit {
   onModuleInit() {
     this.discountService = this.client.getService<DiscountService>('Discount');
   }
-
-  // Implementa a leitura do arquivo json
-  Products = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, 'products.json'), 'utf-8'),
-  );
 
   async checkout(checkoutCartDto: CheckoutCartDto) {
     let cartTotalAmount = 0;
@@ -114,8 +108,7 @@ export class CartService implements OnModuleInit {
    * @private
    */
   private getProduct(productId): Product {
-    const productsBD = this.Products;
-    return productsBD.find((product) => product.id === productId);
+    return Products.find((product) => product.id === productId);
   }
 
   /**
@@ -178,10 +171,8 @@ export class CartService implements OnModuleInit {
    * @private
    */
   private getProductGift(productsCart) {
-    const productsBD = this.Products;
-
     // Busca por produtos que são brinde
-    const giftProductResult = productsBD.find(
+    const giftProductResult = Products.find(
       (product) => product.is_gift === true,
     );
 
