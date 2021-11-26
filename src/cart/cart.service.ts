@@ -1,4 +1,9 @@
-import { Inject, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CheckoutCartDto } from './dto/checkout-cart.dto';
 import { Observable } from 'rxjs';
 import { Discount } from '../interfaces/discount.interface';
@@ -27,7 +32,6 @@ export class CartService implements OnModuleInit {
 
   async checkout(checkoutCartDto: CheckoutCartDto) {
     let cartTotalAmount = 0;
-    const cartTotalAmountWithDiscount = 0;
     let cartTotalDiscount = 0;
 
     // Extrai as informações do BD
@@ -42,12 +46,23 @@ export class CartService implements OnModuleInit {
       cartTotalDiscount += product.discount;
     }
 
-    console.log(productsCheckout, cartTotalAmount, cartTotalDiscount);
-
     // Verificar se é black friday
-    // Se for, adicionar produto brinde no carrinho
-    // Produto brinde possui flag is_gift = true
-    // Só pode haver 1 produto brinde no carrinho
+    if (this.verifyBlackFridayDate()) {
+      // Adiciona um produto de brinde
+      const productGift = this.addProductGift(productsCheckout);
+      if (productGift) {
+        productsCheckout.push(productGift);
+      }
+    }
+
+    const cartTotalAmountWithDiscount = cartTotalAmount - cartTotalDiscount;
+
+    return {
+      total_amount: cartTotalAmount,
+      total_amount_with_discount: cartTotalAmountWithDiscount,
+      total_discount: cartTotalDiscount,
+      products: productsCheckout,
+    };
   }
 
   /**
@@ -66,11 +81,20 @@ export class CartService implements OnModuleInit {
         );
       }
 
+      // Verifica se é um produto brinde
+      if (resultProduct.is_gift) {
+        throw new HttpException(
+          `O produto com id ${productCart.id} não pode ser adicionado ao carrinho!`,
+          400,
+        );
+      }
+
       const product = new ProductCart();
       product.id = resultProduct.id;
       product.quantity = productCart.quantity;
       product.unit_amount = resultProduct.amount;
       product.total_amount = product.unit_amount * product.quantity;
+      product.discount = 0;
       product.is_gift = resultProduct.is_gift;
       return product;
     });
@@ -119,5 +143,54 @@ export class CartService implements OnModuleInit {
     } catch (error) {
       throw new RpcException({ code: error.code, message: error.message });
     }
+  }
+
+  /**
+   * Método auxiliar que verifica se a data atual é de black friday
+   * @private
+   */
+  private verifyBlackFridayDate() {
+    const dateObj = new Date();
+    const month = dateObj.getUTCMonth() + 1;
+    const day = dateObj.getUTCDate();
+    const newdate = month + '/' + day;
+    const blackFridayDate = '11/26';
+
+    return newdate === blackFridayDate;
+  }
+
+  /**
+   * Método que adiciona um produto brinde ao carrinho
+   * Recebe como parâmetro os produtos que estão no carrinho momento,
+   * para verificar a existência de um brinde no carrinho
+   * @param productsCart
+   * @private
+   */
+  private addProductGift(productsCart) {
+    const productsBD = this.Products;
+
+    // Busca por produtos que são brinde
+    const giftProductResult = productsBD.find(
+      (product) => product.is_gift === true,
+    );
+
+    // Verifica se o produto já está adicionado no carrinho
+    const productAlreadyInCart = productsCart.find(
+      (product) => product.id === giftProductResult.id,
+    );
+
+    if (productAlreadyInCart) {
+      return false;
+    }
+
+    // Retorna o produto brinde
+    const product = new ProductCart();
+    product.id = giftProductResult.id;
+    product.quantity = 1;
+    product.unit_amount = 0;
+    product.total_amount = 0;
+    product.discount = 0;
+    product.is_gift = true;
+    return product;
   }
 }
