@@ -7,11 +7,10 @@ import {
 import { CheckoutCartDto } from './dto/checkout-cart.dto';
 import { Observable } from 'rxjs';
 import { Discount } from '../interfaces/discount.interface';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, RpcException } from '@nestjs/microservices';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Product } from './entities/product.entity';
-import * as MOCKED_PRODUCTS from './products.json';
 
 interface DiscountService {
   getDiscount(productId: number): Observable<any>;
@@ -32,31 +31,37 @@ export class CartService implements OnModuleInit {
 
   checkout(checkoutCartDto: CheckoutCartDto) {
     // Extrai as informações do BD
-    const productsCheckout = checkoutCartDto.products.map((productCart) => {
-      const product = this.getProductsDetails(productCart.id);
+    const productsCheckout = checkoutCartDto.products.map(
+      async (productCart) => {
+        const product = this.getProductsDetails(productCart.id);
 
-      // Verifica se o produto existe no BD
-      if (!product) {
-        throw new NotFoundException(
-          `O produto com id ${productCart.id} não foi encontrado!`,
+        // Verifica se o produto existe no BD
+        if (!product) {
+          throw new NotFoundException(
+            `O produto com id ${productCart.id} não foi encontrado!`,
+          );
+        }
+
+        // Verifica se há estoque suficiente
+        if (
+          !CartService.productHasStock(product.amount, productCart.quantity)
+        ) {
+          throw new HttpException(
+            `Não há estoque suficiente para o produto ${productCart.id}`,
+            400,
+          );
+        }
+
+        // Verificar valor com desconto
+        const productDiscount = await this.getGrpcDiscount(product.id);
+        console.log(
+          `### Este é o desconto retornado do produto ${product.id}:`,
         );
-      }
+        console.log(productDiscount);
 
-      // Verifica se há estoque suficiente
-      if (!CartService.productHasStock(product.amount, productCart.quantity)) {
-        throw new HttpException(
-          `Não há estoque suficiente para o produto ${productCart.id}`,
-          400,
-        );
-      }
-
-      // Verificar valor com desconto
-      // const productDiscount = this.getGrpcDiscount(product.id);
-      // console.log(`### Este é o desconto retornado do produto ${product.id}:`);
-      // console.log(productDiscount);
-
-      return product;
-    });
+        return product;
+      },
+    );
 
     // Verificar se é black friday
     // Se for, adicionar produto brinde no carrinho
@@ -87,7 +92,13 @@ export class CartService implements OnModuleInit {
     return !(productStock <= 0 || productStock < requiredAmount);
   }
 
-  private getGrpcDiscount(productId: number): Observable<Discount> {
-    return this.discountService.getDiscount(productId);
+  private async getGrpcDiscount(
+    productId: number,
+  ): Promise<Observable<Discount>> {
+    try {
+      return await this.discountService.getDiscount(productId).toPromise();
+    } catch (error) {
+      throw new RpcException({ code: error.code, message: error.message });
+    }
   }
 }
