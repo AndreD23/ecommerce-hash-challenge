@@ -5,19 +5,6 @@ import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
 import { grpcCartModuleClientOptions } from '../grpc-client.option';
 
-// @Module({
-//   imports: [
-//     ClientsModule.register([
-//       {
-//         name: 'DISCOUNT_PACKAGE',
-//         ...grpcCartModuleClientOptions,
-//       },
-//     ]),
-//   ],
-//   controllers: [CartController],
-//   providers: [CartService],
-// })
-
 @Module({
   imports: [ConfigModule],
   controllers: [CartController],

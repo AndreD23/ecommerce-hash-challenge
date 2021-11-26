@@ -26,6 +26,7 @@ export class CartService implements OnModuleInit {
     this.discountService = this.client.getService<DiscountService>('Discount');
   }
 
+  // Implementa a leitura do arquivo json
   Products = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, 'products.json'), 'utf-8'),
   );
@@ -37,24 +38,30 @@ export class CartService implements OnModuleInit {
     // Extrai as informações do BD
     const productsCheckout = this.productsDetails(checkoutCartDto.products);
 
+    // Loop para verificação de valores dos produtos e descontos
     for (const product of productsCheckout) {
+      // Incrementa valor total do carrinho
       cartTotalAmount += product.total_amount;
 
-      // Verificar valor com desconto
+      // Verifica valor com desconto
       product.discount = await this.calculateDiscount(product);
 
+      // Incrementa valor total de desconto no carrinho
       cartTotalDiscount += product.discount;
     }
 
     // Verificar se é black friday
     if (this.verifyBlackFridayDate()) {
-      // Adiciona um produto de brinde
-      const productGift = this.addProductGift(productsCheckout);
+      // Busca por produto brinde
+      const productGift = this.getProductGift(productsCheckout);
+
+      // Adiciona um produto de brinde no carrinho
       if (productGift) {
         productsCheckout.push(productGift);
       }
     }
 
+    // Cálculo de total do carrinho com desconto
     const cartTotalAmountWithDiscount = cartTotalAmount - cartTotalDiscount;
 
     return {
@@ -117,14 +124,18 @@ export class CartService implements OnModuleInit {
    * @private
    */
   private async calculateDiscount(product: ProductCart) {
+    // Busca pelo desconto no server grpc
     const resultDiscount = await this.getGrpcDiscount(product.id);
 
+    // Verifica se o serviço retornou a porcentagem de desconto
     if (Object.keys(resultDiscount).length === 0) {
       return 0;
     }
 
+    // Arredonda o valor da porcentagem
     const discountPercentage = Number(resultDiscount.percentage.toFixed(2));
 
+    // Retorna o cálculo do valor de desconto a ser aplicado
     return (
       Number(((product.total_amount / 100) * discountPercentage).toFixed(2)) *
       100
@@ -160,13 +171,13 @@ export class CartService implements OnModuleInit {
   }
 
   /**
-   * Método que adiciona um produto brinde ao carrinho
+   * Método que retorna um produto brinde
    * Recebe como parâmetro os produtos que estão no carrinho momento,
    * para verificar a existência de um brinde no carrinho
    * @param productsCart
    * @private
    */
-  private addProductGift(productsCart) {
+  private getProductGift(productsCart) {
     const productsBD = this.Products;
 
     // Busca por produtos que são brinde
