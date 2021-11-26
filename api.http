@@ -12,7 +12,7 @@ Content-Type: application/json
     },
     {
       "id": 2,
-      "quantity": 3
+      "quantity": 2
     }
   ]
 }
