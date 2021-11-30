@@ -121,7 +121,11 @@ export class CartService implements OnModuleInit {
     const resultDiscount = await this.getGrpcDiscount(product.id);
 
     // Verifica se o serviço retornou a porcentagem de desconto
-    if (Object.keys(resultDiscount).length === 0) {
+    if (
+      Object.keys(resultDiscount).length === 0 ||
+      !resultDiscount.hasOwnProperty('percentage') ||
+      resultDiscount.percentage === 0
+    ) {
       return 0;
     }
 
@@ -141,7 +145,7 @@ export class CartService implements OnModuleInit {
    * @param productId
    * @private
    */
-  private async getGrpcDiscount(productId: number): Promise<Discount> {
+  async getGrpcDiscount(productId: number): Promise<Discount> {
     try {
       return await this.discountService.getDiscount(productId).toPromise();
     } catch (error) {
@@ -153,7 +157,7 @@ export class CartService implements OnModuleInit {
    * Método auxiliar que verifica se a data atual é de black friday
    * @private
    */
-  private verifyBlackFridayDate() {
+  verifyBlackFridayDate() {
     const dateObj = new Date();
     const month = dateObj.getUTCMonth() + 1;
     const day = dateObj.getUTCDate();
