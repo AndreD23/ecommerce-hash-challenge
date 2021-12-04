@@ -1,16 +1,20 @@
-version: '3'
+version: '3.7'
 
 services:
   app:
-    build: .
-    entrypoint: ./.docker/entrypoint.sh
+    build:
+      context: .
+      network: host
+    entrypoint: .docker/entrypoint.sh
     container_name: ecommerce-hash-challenge
     ports:
       - "3000:3000"
     volumes:
       - .:/home/node/app
   grpc:
-    build: .docker/grpc-server
+    build:
+      context: .docker/grpc-server
+      network: host
     container_name: grpc-server
     ports:
       - "50051:50051"
