@@ -5,7 +5,6 @@ services:
     build:
       context: .
       network: host
-    entrypoint: .docker/entrypoint.sh
     container_name: ecommerce-hash-challenge
     ports:
       - "3000:3000"

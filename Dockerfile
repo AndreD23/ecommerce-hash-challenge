@@ -8,4 +8,4 @@ USER node
 
 WORKDIR /home/node/app
 
-RUN ["chmod", "+x", "/home/node/app/.docker/entrypoint.sh"]
+ENTRYPOINT ["sh", ".docker/entrypoint.sh"]
