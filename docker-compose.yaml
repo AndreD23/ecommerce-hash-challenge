@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: .
+      network: host
+    container_name: ecommerce-hash-challenge
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/home/node/app
+  grpc:
+    build:
+      context: .docker/grpc-server
+      network: host
+    container_name: grpc-server
+    ports:
+      - "50051:50051"
