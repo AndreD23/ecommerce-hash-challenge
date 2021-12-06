@@ -16,11 +16,13 @@ Por baixo dos panos, foi configurado o framework de servidor HTTP Fastify para r
 
 Para montar e subir o ambiente, basta seguir os passos abaixo:
 
-1. Clonar o repositório
-   git clone https://github.com/AndreD23/ecommerce-hash-challenge.git
-2. Entrar na pasta do projeto
-3. Executar
+1. Clonar o repositório:
+   *git clone https://github.com/AndreD23/ecommerce-hash-challenge.git*
+2. Entrar na pasta do projeto: cd ecommerce-hash-challeng
+3. Executar docker compose para subir os serviços:
    *docker-compose up*
+
+Com isso, a aplicação estará rodando e escutando em localhost na porta 3000.
 
 ---
 
