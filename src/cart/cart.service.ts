@@ -12,6 +12,9 @@ import { Product } from './entities/product.entity';
 import { ProductCart } from './entities/cart.entity';
 import * as Products from './products.json';
 
+/**
+ * Interface de comunicação com o serviço GRPC
+ */
 interface DiscountService {
   getDiscount(productId: number): Observable<any>;
 }
@@ -25,6 +28,10 @@ export class CartService implements OnModuleInit {
     this.discountService = this.client.getService<DiscountService>('Discount');
   }
 
+  /**
+   * Método responsável por receber os itens de carrinho e realizar o checkout
+   * @param checkoutCartDto
+   */
   async checkout(checkoutCartDto: CheckoutCartDto) {
     let cartTotalAmount = 0;
     let cartTotalDiscount = 0;
@@ -185,6 +192,7 @@ export class CartService implements OnModuleInit {
       (product) => product.id === giftProductResult.id,
     );
 
+    // Caso o produto já esteja no carrinho, retornar false
     if (productAlreadyInCart) {
       return false;
     }
